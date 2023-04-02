@@ -39,16 +39,16 @@ public class OpenAiController {
 
     /**
      * 发信息
-     *
+     * @param type gpt预设回答类型，与人设类似
      * @param prompt 提示词
      * @param user   用户
      * @return
      */
     @GetMapping(value = "/completions/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> streamCompletions(String prompt, String user) {
+    public Flux<String> streamCompletions(int type, String prompt, String user) {
         Assert.hasLength(user, "user不能为空");
         Assert.hasLength(prompt, "prompt不能为空");
-        return userChatService.send(MessageType.TEXT, prompt, user);
+        return userChatService.send(MessageType.TEXT, type, prompt, user);
     }
 
     /**

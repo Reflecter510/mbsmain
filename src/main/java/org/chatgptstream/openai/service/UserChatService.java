@@ -21,7 +21,7 @@ public interface UserChatService extends CompletedCallBack {
      * @param content
      * @param sessionId
      */
-    Flux<String> send(MessageType type, String content, String sessionId);
+    Flux<String> send(MessageType msgType, int type, String content, String sessionId);
 
     /**
      * 消息历史

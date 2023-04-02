@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -25,6 +26,7 @@ import reactor.netty.tcp.ProxyProvider;
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
 /**
@@ -88,7 +90,7 @@ public class OpenAiWebClient {
     }
 
 
-    public Flux<String> getChatResponse(String user, String prompt, Integer maxTokens, Double temperature, Double topP) {
+    public Flux<String> getChatResponse(String user, String sysPrompt, String prompt, Integer maxTokens, Double temperature, Double topP) {
         JSONObject params = new JSONObject();
 
         params.put("model", "gpt-3.5-turbo");
@@ -97,11 +99,19 @@ public class OpenAiWebClient {
         params.put("temperature", temperature);
         params.put("top_p", topP);
         params.put("user", user);
+
+        ArrayList<JSONObject> msgList = new ArrayList<>();
         JSONObject message = new JSONObject();
         message.put("role", "user");
         message.put("content", prompt);
-        params.put("messages", Collections.singleton(message));
-        log.info("ttttttt:{}", authorization);
+        msgList.add(message);
+        if (!StringUtils.isEmpty(sysPrompt)) {
+            JSONObject sysMessage = new JSONObject();
+            message.put("role", "system");
+            message.put("content", sysPrompt);
+            msgList.add(sysMessage);
+        }
+        params.put("messages", msgList);
         return webClient.post()
             .uri(ApiConstant.CHAT_API)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + authorization)
@@ -124,7 +134,6 @@ public class OpenAiWebClient {
         params.put("prompt", prompt);
         params.put("user", user);
         params.put("n", 2);
-        log.info("ttttttt:{}", authorization);
 
         return webClient.post()
             .uri(ApiConstant.IMAGE_API)
@@ -150,7 +159,6 @@ public class OpenAiWebClient {
     public Mono<ServerResponse> checkContent(String prompt) {
         JSONObject params = new JSONObject();
         params.put("input", prompt);
-        log.info("ttttttt:{}", authorization);
         return webClient.post()
             .uri(ApiConstant.CONTENT_AUDIT)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + authorization)

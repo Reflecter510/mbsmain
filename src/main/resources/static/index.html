@@ -74,7 +74,7 @@
                     alert('请等待生成完毕')
                     return
                 }
-                let sse = new EventSource(`/openai/completions/stream?user=${this.getUser()}&prompt=${this.message}`)
+                let sse = new EventSource(`/openai/completions/stream?type=0&user=${this.getUser()}&prompt=${this.message}`)
                 this.generating = true
                 let this_ = this
                 this_.items.push({user: 'user', messageType: 'TEXT', message: this_.message})

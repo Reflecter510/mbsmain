@@ -33,7 +33,7 @@ public class UserChatServiceImpl implements UserChatService {
     private static final List<String> IMAGE_COMMAND_PREFIX = Arrays.asList("画", "找");
 
     @Override
-    public Flux<String> send(MessageType type, String content, String sessionId) {
+    public Flux<String> send(MessageType msgType, int type, String content, String sessionId) {
 
         if (IMAGE_COMMAND_PREFIX.contains(String.valueOf(content.charAt(0)))) {
             Message userMessage = new Message(MessageType.IMAGE, UserType.USER, content);
@@ -54,13 +54,14 @@ public class UserChatServiceImpl implements UserChatService {
         String historyDialogue = history.stream().map(e -> String.format(e.getUserType().getCode(), e.getMessage())).collect(Collectors.joining());
 
         String prompt = StringUtils.hasLength(historyDialogue) ? String.format("%sQ:%s\nA: ", historyDialogue, content) : content;
-
+        // TODO 对话开始前，设定gpt人设
+        String sysPrompt = "";
 
         log.info("prompt:{}", prompt);
         return Flux.create(emitter -> {
             OpenAISubscriber subscriber = new OpenAISubscriber(emitter, sessionId, this, userMessage);
             Flux<String> openAiResponse =
-                openAiWebClient.getChatResponse(sessionId, prompt, null, null, null);
+                openAiWebClient.getChatResponse(sessionId, sysPrompt, prompt, null, null, null);
             openAiResponse.subscribe(subscriber);
             emitter.onDispose(subscriber);
         });
