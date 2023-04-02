@@ -53,15 +53,15 @@ public class UserChatServiceImpl implements UserChatService {
         log.info("history:{}", history);
         String historyDialogue = history.stream().map(e -> String.format(e.getUserType().getCode(), e.getMessage())).collect(Collectors.joining());
 
-        String prompt = StringUtils.hasLength(historyDialogue) ? String.format("%sQ:%s\nA: ", historyDialogue, content) : content;
-        // TODO 对话开始前，设定gpt人设
-        String sysPrompt = "";
+        // TODO 对话开始前，根据type设定gpt人设
+        String initPrompt = "Assuming your name is RefAi, let's start chatting:";
+        String prompt = StringUtils.hasLength(historyDialogue) ? String.format("%sQ:%s\nA: ", historyDialogue, content) : initPrompt + content;
 
         log.info("prompt:{}", prompt);
         return Flux.create(emitter -> {
             OpenAISubscriber subscriber = new OpenAISubscriber(emitter, sessionId, this, userMessage);
             Flux<String> openAiResponse =
-                openAiWebClient.getChatResponse(sessionId, sysPrompt, prompt, null, null, null);
+                openAiWebClient.getChatResponse(sessionId, "", prompt, null, null, null);
             openAiResponse.subscribe(subscriber);
             emitter.onDispose(subscriber);
         });
