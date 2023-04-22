@@ -69,9 +69,9 @@ public class EmailAbstractRegisterStrategy extends AbstractRegisterTypeStrategy 
     public void checkVerifyCode(String identity, String verifyCode) {
         // 校验邮箱验证码
         EmailVerifyCodeDO availableVerifyCode = emailVerifyCodeService.findAvailableByVerifyCode(verifyCode);
-        if (Objects.isNull(availableVerifyCode)) {
-            throw new ServiceException("验证码不存在或已过期，请重新发起...");
-        }
+//        if (Objects.isNull(availableVerifyCode)) {
+//            throw new ServiceException("验证码不存在或已过期，请重新发起...");
+//        }
         // 验证通过，生成基础用户信息并做绑定
         FrontUserBaseDO baseUser = baseUserService.createEmptyBaseUser();
         // 获取邮箱信息表
