@@ -6,19 +6,11 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.hncboy.chatgpt.base.constant.ApplicationConstant;
-import com.hncboy.chatgpt.base.domain.entity.EmailVerifyCodeDO;
-import com.hncboy.chatgpt.base.domain.entity.FrontUserBaseDO;
-import com.hncboy.chatgpt.base.domain.entity.FrontUserExtraBindingDO;
-import com.hncboy.chatgpt.base.domain.entity.FrontUserExtraEmailDO;
+import com.hncboy.chatgpt.base.domain.entity.*;
 import com.hncboy.chatgpt.base.enums.EmailBizTypeEnum;
 import com.hncboy.chatgpt.base.enums.FrontUserRegisterTypeEnum;
 import com.hncboy.chatgpt.base.exception.ServiceException;
-import com.hncboy.chatgpt.base.service.EmailService;
-import com.hncboy.chatgpt.base.service.EmailVerifyCodeService;
-import com.hncboy.chatgpt.base.service.FrontUserBaseService;
-import com.hncboy.chatgpt.base.service.FrontUserExtraBindingService;
-import com.hncboy.chatgpt.base.service.FrontUserExtraEmailService;
-import com.hncboy.chatgpt.base.service.SysFrontUserLoginLogService;
+import com.hncboy.chatgpt.base.service.*;
 import com.hncboy.chatgpt.front.domain.request.RegisterFrontUserForEmailRequest;
 import com.hncboy.chatgpt.front.domain.vo.LoginInfoVO;
 import com.hncboy.chatgpt.front.domain.vo.UserInfoVO;
@@ -27,6 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.Objects;
 
 import static com.hncboy.chatgpt.base.constant.ApplicationConstant.FRONT_JWT_EXTRA_USER_ID;
@@ -46,6 +39,9 @@ public class EmailAbstractRegisterStrategy extends AbstractRegisterTypeStrategy 
 
     @Resource
     private FrontUserBaseService baseUserService;
+
+    @Resource
+    private FrontUserPermissionService permissionService;
 
     @Resource
     private EmailVerifyCodeService emailVerifyCodeService;
@@ -168,6 +164,15 @@ public class EmailAbstractRegisterStrategy extends AbstractRegisterTypeStrategy 
             // 记录登录失败日志
             loginLogService.loginFailed(FrontUserRegisterTypeEnum.EMAIL, emailDO.getId(), baseUserId, "账号或密码错误");
             throw new ServiceException("账号或密码错误");
+        }
+
+        // 检查账户有效期
+        FrontUserExtraBindingDO userExtraBindingDO = bindingService.findExtraBinding(FrontUserRegisterTypeEnum.EMAIL, emailDO.getId());
+        if (Objects.nonNull(userExtraBindingDO)) {
+            FrontUserPermissionDO userPermissionDO = permissionService.findUserInfoById(userExtraBindingDO.getPermissionId());
+            if (Objects.isNull(userPermissionDO) || userPermissionDO.getValidityTime().getTime() < System.currentTimeMillis()) {
+                throw new ServiceException("账户不在有效期内");
+            }
         }
 
         // 获取登录用户信息

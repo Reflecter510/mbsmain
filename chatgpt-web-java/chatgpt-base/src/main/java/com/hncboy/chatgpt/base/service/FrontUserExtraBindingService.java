@@ -29,4 +29,11 @@ public interface FrontUserExtraBindingService extends IService<FrontUserExtraBin
      * @return 绑定关系
      */
     FrontUserExtraBindingDO findExtraBinding(FrontUserRegisterTypeEnum frontUserRegisterTypeEnum, Integer extraInfoId);
+    /**
+     * 找到绑定关系
+     *
+     * @param baseUserId               基础用户 id
+     * @return 绑定关系
+     */
+    FrontUserExtraBindingDO findExtraBindingByUser(Integer baseUserId);
 }

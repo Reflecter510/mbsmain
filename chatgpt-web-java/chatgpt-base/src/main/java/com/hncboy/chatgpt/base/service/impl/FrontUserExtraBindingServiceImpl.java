@@ -35,6 +35,12 @@ public class FrontUserExtraBindingServiceImpl extends ServiceImpl<FrontUserExtra
                 .eq(FrontUserExtraBindingDO::getBindingType, registerType)
                 .eq(FrontUserExtraBindingDO::getExtraInfoId, extraInfoId));
     }
+
+    @Override
+    public FrontUserExtraBindingDO findExtraBindingByUser(Integer baseUserId) {
+        return getOne(new LambdaQueryWrapper<FrontUserExtraBindingDO>()
+                .eq(FrontUserExtraBindingDO::getBaseUserId, baseUserId));
+    }
 }
 
 
